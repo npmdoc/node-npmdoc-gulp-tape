@@ -1,0 +1,161 @@
+<html><head></head><body><div class="apidocDiv">
+<style>
+/*csslint
+*/
+.apidocDiv {
+    background: #fff;
+    font-family: Arial, Helvetica, sans-serif;
+}
+.apidocDiv a[href] {
+    color: #33f;
+    font-weight: bold;
+    text-decoration: none;
+}
+.apidocDiv a[href]:hover {
+    text-decoration: underline;
+}
+.apidocCodeCommentSpan {
+    background: #bbf;
+    color: #000;
+    display: block;
+}
+.apidocCodeKeywordSpan {
+    color: #d00;
+    font-weight: bold;
+}
+.apidocCodePre {
+    background: #eef;
+    border: 1px solid;
+    color: #777;
+    padding: 5px;
+    white-space: pre-wrap;
+}
+.apidocFooterDiv {
+    margin-top: 20px;
+    text-align: center;
+}
+.apidocModuleLi {
+    margin-top: 10px;
+}
+.apidocSectionDiv {
+    border-top: 1px solid;
+    margin-top: 20px;
+}
+.apidocSignatureSpan {
+    color: #777;
+    font-weight: bold;
+}
+</style>
+<h1>api documentation for
+    <a href="https://github.com/yuanqing/gulp-tape#readme">gulp-tape (v0.0.9)</a>
+</h1>
+<h4>Run Tape tests in Gulp.</h4>
+<div class="apidocSectionDiv"><a href="#apidoc.tableOfContents" id="apidoc.tableOfContents"><h1>table of contents</h1></a><ol>
+
+    <li class="apidocModuleLi"><a href="#apidoc.module.gulp-tape">module gulp-tape</a><ol>
+
+        <li>
+
+            <a class="apidocElementLiA" href="#apidoc.element.gulp-tape.gulp-tape">
+            function <span class="apidocSignatureSpan"></span>gulp-tape
+            <span class="apidocSignatureSpan">(opts)</span>
+            </a>
+
+        </li>
+
+    </ol></li>
+
+</ol></div>
+
+<div class="apidocSectionDiv">
+<h1><a href="#apidoc.module.gulp-tape" id="apidoc.module.gulp-tape">module gulp-tape</a></h1>
+
+
+    <h2>
+        <a href="#apidoc.element.gulp-tape.gulp-tape" id="apidoc.element.gulp-tape.gulp-tape">
+        function <span class="apidocSignatureSpan"></span>gulp-tape
+        <span class="apidocSignatureSpan">(opts)</span>
+        </a>
+    </h2>
+    <ul>
+    <li>description and source-code<pre class="apidocCodePre">gulp-tape = function (opts) {
+  opts = opts || {};
+
+  var bail         = opts.bail         || false;
+  var outputStream = opts.outputStream || process.stdout;
+  var reporter     = opts.reporter     || through.obj();
+  var tapeOpts     = opts.tapeOpts     || {};
+
+  var files        = [];
+
+  var transform = function(file, encoding, callback) {
+    if (file.isNull()) {
+      return callback(null, file);
+    }
+    if (file.isStream()) {
+      return callback(new PluginError(PLUGIN_NAME, 'Streaming is not supported'));
+    }
+    files.push(file.path);
+    callback(null, file);
+  };
+
+  var flush = function(callback) {
+    try {
+      var tapeStream = tape.createStream(tapeOpts);
+      tapeStream.pipe(reporter).pipe(outputStream);
+      files.forEach(function(file) {
+        requireUncached(file);
+      });
+      var results = tape.getHarness()._results;
+      results.once('done', function() {
+        var shouldErrorOut = false;
+
+        // The following messages will never reach the reporter if we end the
+        // tape output here.
+        var write = this._stream.push.bind(this._stream);
+        write('\n1..' + this.count + '\n');
+        write('# tests ' + this.count + '\n');
+        write('# pass  ' + this.pass + '\n');
+        if (this.fail) {
+          write('# fail  ' + this.fail + '\n');
+
+          // Some test failed; we should error out if and only if `bail`
+          // is `true`.
+          shouldErrorOut = bail;
+        } else {
+          write('\n# ok\n');
+        }
+
+        // Reset the counts.
+        this.count = 0;
+        this.fail = 0;
+        this.pass = 0;
+        tapeStream.push(null);
+
+        callback(shouldErrorOut ? new PluginError(PLUGIN_NAME, 'Test failed') : null);
+      });
+
+      // This is hacky. Each time `tape.createStream` is called,
+      // `results._stream` pipes to a new output stream, and more listeners
+      // are added, so we have to remove the max limit.
+      results._stream.setMaxListeners(0);
+    } catch (err) {
+      callback(new PluginError(PLUGIN_NAME, err));
+    }
+  };
+
+  return through.obj(transform, flush);
+}</pre></li>
+    <li>example usage<pre class="apidocCodePre">n/a</pre></li>
+    </ul>
+
+
+</div>
+
+<div class="apidocFooterDiv">
+    [ this document was created with
+    <a href="https://github.com/kaizhu256/node-utility2" target="_blank">utility2</a>
+    ]
+</div>
+</div>
+</body></html>
